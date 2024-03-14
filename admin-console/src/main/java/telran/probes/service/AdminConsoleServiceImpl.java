@@ -1,3 +1,4 @@
+
 package telran.probes.service;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -22,11 +23,10 @@ import telran.probes.model.SensorRangeDoc;
 @RequiredArgsConstructor
 public class AdminConsoleServiceImpl implements AdminConsoleService {
 final MongoTemplate mongoTemplate;
-final StreamBridge streamBridge;
+
 String collectionNameRanges = "sensor_ranges";
 String collectionNameMails = "sensor_emails";
-@Value("${app.update.data.binding.name}")
-String bindingName;
+
 FindAndModifyOptions options = new FindAndModifyOptions().returnNew(true).upsert(false);
 	@Override
 	public SensorRange addSensorRange(SensorRange sensorRange) {
@@ -63,7 +63,7 @@ FindAndModifyOptions options = new FindAndModifyOptions().returnNew(true).upsert
 		long sensorId = sensorRange.id();
 		Range range = sensorRange.range();
 		Update update = new Update();
-		update.push("range", range);
+		update.set("range", range);
 		Query query = new Query(Criteria.where("sensorId").is(sensorId));
 		SensorRangeDoc sensorRangeRes = mongoTemplate.findAndModify(query, update, options, SensorRangeDoc.class);
 		if(sensorRangeRes == null) {
@@ -71,9 +71,7 @@ FindAndModifyOptions options = new FindAndModifyOptions().returnNew(true).upsert
 			throw new SensorNotFoundException(sensorId, collectionNameRanges);
 		}
 		log.debug("new range for sensor {} is {}", sensorId, range);
-		SensorUpdateData updateData = new SensorUpdateData(sensorId, range, null);
-		streamBridge.send(bindingName, updateData);
-		log.debug("update data {} have been sent to binding name {}", updateData, bindingName);
+		
 		return sensorRange;
 	}
 
@@ -82,7 +80,7 @@ FindAndModifyOptions options = new FindAndModifyOptions().returnNew(true).upsert
 		long sensorId = sensorEmails.id();
 		String[] emails = sensorEmails.mails();
 		Update update = new Update();
-		update.push("emails", emails);
+		update.set("emails", emails);
 		Query query = new Query(Criteria.where("sensorId").is(sensorId));
 		SensorEmailsDoc sensorEmailsRes = mongoTemplate.findAndModify(query, update, options, SensorEmailsDoc.class);
 		if(sensorEmailsRes == null) {
@@ -90,9 +88,7 @@ FindAndModifyOptions options = new FindAndModifyOptions().returnNew(true).upsert
 			throw new SensorNotFoundException(sensorId, collectionNameMails);
 		}
 		log.debug("new remails for sensor {} is {}", sensorId, emails);
-		SensorUpdateData updateData = new SensorUpdateData(sensorId, null, emails);
-		streamBridge.send(bindingName, updateData);
-		log.debug("update data {} have been sent to binding name {}", updateData, bindingName);
+		
 		return sensorEmails;
 	}
 
