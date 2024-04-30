@@ -17,5 +17,10 @@
 		  <version>2.0.0</version>
 		  <scope>test</scope> 
 		  </dependency>
+	  <dependency>
+	  	<groupId>telran.aws</groupId>
+	  	<artifactId>sns-prototype</artifactId>
+	  	<version>0.0.1</version>
+	  </dependency>
   </dependencies>
 </project>
